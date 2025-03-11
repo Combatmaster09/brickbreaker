@@ -1,0 +1,3 @@
+Game option: Option 5. Brick Breaker/Arcade Game
+Justification: I chose this option as it differs from my year 11 project, and I wish to challenge myself by picking
+               a game type that is different to games that I have prior knowledge and understanding of.

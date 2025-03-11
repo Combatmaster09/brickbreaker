@@ -1,0 +1,35 @@
+Problem definition:
+    The world needs a new, engaging, and challenging Brick Breaker game that captures the spirit of classic titles 
+    like Arkanoid. This game will offer a fresh take on the familiar gameplay, incorporating modern features and 
+    mechanics while retaining the core elements that made the genre so popular.
+Target Audience:
+    This game is designed for a broad audience, as well as those who wish to challenge themselves while playing a
+    largely nostalgic game. The game will be accessible to players of all ages and skill levels.
+Objectives:
+    Gameplay:
+        Core mechanics:
+            - Use a paddle to bounce a ball and break bricks.
+            - Progress through unique levels with increasing difficulty
+            - Collect power-ups and avoid power-downs to enhance gameplay
+        Unique features:
+            - Implement both a velocity based control scheme; player moves and stops the paddle by pressing and 
+                releasing arrow/AD keys, as well as an acceleration based control scheme; player moves the paddle 
+                by holding arrow/AD keys to increase acceleration in either direction, which doesn't stop with key
+                release.
+            - innovaative level design with unique geometric shapes and brick types that effect the game in a
+                variety of ways.
+            - A variety of power-ups and power-downs that can be collected or avoided to enhance or hinder gameplay.
+    Visuals:    
+        Aesthetics:
+            - Vibrant engaging visual style, drawing inspiration from classic arcade games as well as modern game
+                design trends.
+        Animation:
+            - Smooth and responsive animations for the ball, paddle, and powerups that enhance the gameplay experience.
+        Foley Artistry/sound design
+            - Immersive sound effects and a classic style soundtrack that embodies the style of the game.
+    User Experience:
+        Intuitive Controls:
+            - Easy to learn controls that are responsive and intuitive.
+        User Interface
+            - Clean, User friendly, and simple interface that provides clear options for the player to try different gamemodes
+                and settings.

@@ -1,6 +1,6 @@
 from GameObject import gameobject
 from pygame.math import Vector2
-from utils import load_sprite
+from utils import load_sprite, wrap_position
 
 class acceleration_paddle(gameobject):
     ACCELERATION = 0.1
@@ -9,8 +9,6 @@ class acceleration_paddle(gameobject):
         
         super().__init__(position, load_sprite("paddle"), Vector2(0))
         
-    def move_right(self):
-        self.velocity += self.ACCELERATION
-    def move_left(self):
-        self.velocity += (self.ACCELERATION * -1)
+    def move(self, surface):
+       self.position = wrap_position(self.position + self.velocity, surface)
         

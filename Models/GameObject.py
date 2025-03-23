@@ -1,7 +1,7 @@
 from pygame.math import Vector2
 from pygame.transform import rotozoom
 
-from utils import get_random_velocity, load_sound, load_sprite, wrap_position
+from utils import load_sound, load_sprite, wrap_position
 import globals
 
 UP = Vector2(0, -1)

@@ -11,3 +11,4 @@ buzzer_max = 3
 font = pygame.font.Font(None, 24)
 asteroid_number = 6
 game = True
+colour = (255, 255, 255)

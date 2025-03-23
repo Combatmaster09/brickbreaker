@@ -34,3 +34,10 @@ def print_text(surface, text, font, color=Color("white")):
     rect.center = (720, 100)  # Center the text at position (720, 100)
 
     surface.blit(text_surface, rect)  # Draw the text surface onto the main surface
+    
+def wrap_position(position, surface):
+    """Wraps a position around the edges of the game surface. 
+    Useful for keeping objects on screen."""
+    x, y = position
+    width, height = surface.get_size()
+    return Vector2(x % width, y % height)  # Modulo operation for wrapping

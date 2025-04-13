@@ -1,6 +1,8 @@
+# In UI/ScoreManager.py
 import pygame
 import globals
 from utils import print_text
+import time  # Add this import
 
 class ScoreManager:
     def __init__(self):
@@ -8,6 +10,19 @@ class ScoreManager:
         self.score_color = (255, 255, 255)
         self.high_score = 0
         self.lives = 3
+        self.last_life_lost_time = 0  # Track when the last life was lost
+        self.life_loss_cooldown = 1.0  # Cooldown in seconds
+        
+    # ... other methods remain the same ...
+    
+    def reduce_life(self):
+        current_time = time.time()
+        # Check if enough time has passed since the last life was lost
+        if current_time - self.last_life_lost_time >= self.life_loss_cooldown:
+            self.lives -= 1
+            self.last_life_lost_time = current_time
+            return self.lives <= 0  # Return True if game over
+        return False  # Not enough time has passed, don't count as game over
         
     def update(self):
         # Update high score if current score is higher

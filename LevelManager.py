@@ -3,13 +3,101 @@ from Models.Brick import Brick
 from pygame.math import Vector2
 from utils import load_sprite
 import random
+from LevelDesigns import LEVEL_DESIGNS
 
 class LevelManager:
     def __init__(self, game_instance):
         self.game_instance = game_instance
         self.current_level = 1
         self.levels_data = self._generate_levels_data(10)  # Pre-generate 10 levels
+
+    # Add this method to LevelManager class
+    def load_custom_level(self, level_number):
+        """Load a custom-designed level"""
+        if level_number <= len(LEVEL_DESIGNS):
+            level_design = LEVEL_DESIGNS[level_number - 1]
+        else:
+            # If requesting a level beyond the designed ones,
+            # use the last level or generate a procedural one
+            if LEVEL_DESIGNS:
+                level_design = LEVEL_DESIGNS[-1]
+            else:
+                # Fallback to procedural generation
+                return self.load_level(level_number)
         
+        # Update global level
+        globals.level = level_number
+        self.current_level = level_number
+        
+        # Clear existing bricks
+        self.game_instance.game_objects = [obj for obj in self.game_instance.game_objects 
+                                        if not isinstance(obj, Brick)]
+        
+        # Create bricks based on the level design
+        bricks = self._create_from_design(level_design)
+        
+        # Add bricks to game objects
+        for brick in bricks:
+            self.game_instance.game_objects.append(brick)
+        
+        return True
+
+    def _create_from_design(self, level_design):
+        """Create brick formation from a level design"""
+        bricks = []
+        
+        # Set up brick dimensions explicitly
+        brick_width, brick_height = globals.BRICK_SIZE
+        
+        # Add padding between bricks
+        horizontal_padding = 15  # Increased horizontal padding
+        vertical_padding = 15    # Increased vertical padding
+        
+        # Calculate total width needed for bricks
+        num_cols = max(len(row) for row in level_design)
+        total_width = num_cols * (brick_width + horizontal_padding) - horizontal_padding
+        
+        # Calculate starting position to center the brick formation
+        screen_width = self.game_instance.screen.get_width()
+        start_x = (screen_width - total_width) // 2
+        start_y = 80  # Start further from the top for better visibility
+        
+        # Create the bricks based on the design
+        for row_idx, row in enumerate(level_design):
+            for col_idx, char in enumerate(row):
+                if char == ' ':
+                    continue  # No brick here
+                    
+                # Calculate exact position for each brick
+                x = start_x + col_idx * (brick_width + horizontal_padding) + brick_width / 2
+                y = start_y + row_idx * (brick_height + vertical_padding) + brick_height / 2
+                
+                # Determine brick health based on character
+                if char in '23456789':
+                    health = int(char)
+                elif char == '#':
+                    health = 1
+                elif char == 'S':
+                    health = 1  # Special brick
+                    # TODO: Implement special brick types
+                else:
+                    continue  # Unknown character
+                
+                # Create the brick with precise positioning
+                brick = Brick(Vector2(x, y), load_sprite("brick"), health)
+                
+                # Adjust the sprite size to match the desired brick size
+                # This ensures the visual representation matches the collision detection
+                if brick.sprite.get_width() != brick_width or brick.sprite.get_height() != brick_height:
+                    import pygame
+                    brick.sprite = pygame.transform.scale(brick.sprite, (brick_width, brick_height))
+                    # Update radius for collision detection
+                    brick.radius = max(brick_width, brick_height) / 2
+                
+                bricks.append(brick)
+        
+        return bricks
+    
     def _generate_levels_data(self, num_levels):
         """Generate data for multiple levels with increasing difficulty"""
         levels = []
@@ -97,9 +185,12 @@ class LevelManager:
                 
         return bricks
         
+    # Update the LevelManager.py file to use the _get_game_objects method:
     def check_level_complete(self):
         """Check if all bricks are destroyed"""
-        bricks = [obj for obj in self.game_instance.game_objects if isinstance(obj, Brick) and not obj.destroyed]
+        # Use _get_game_objects() instead of directly accessing game_objects
+        game_objects = self.game_instance._get_game_objects()
+        bricks = [obj for obj in game_objects if isinstance(obj, Brick) and not obj.destroyed]
         
         if not bricks:
             # Level complete, load next level

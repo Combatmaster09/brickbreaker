@@ -25,19 +25,19 @@ class brickbreaker:
         # Set this instance as the singleton instance
         brickbreaker._instance = self
         
-        # Initialize game objects right away
+        # Initialize game objects list (but don't create objects yet)
         self.game_objects = []
-        self._initialize_game_objects()
         
-        # Initialize level manager after game objects
+        # Initialize level manager first
         from LevelManager import LevelManager
         self.level_manager = LevelManager(self)
+        
+        # Initialize game objects after level manager
+        self._initialize_game_objects()
         
         # Initialize score manager
         from UI.ScoreManager import ScoreManager
         self.score_manager = ScoreManager()
-
-
         
     def _init_pygame(self):
         """This function initializes the pygame library and sets the game window caption"""
@@ -62,12 +62,6 @@ class brickbreaker:
                 self.reset_game()
                 self.restart_game = False
                 
-                
-    def _init_pygame(self):
-        """This function initializes the pygame library and sets the game window caption"""
-        pygame.init()
-        pygame.display.set_caption("Brick Breaker")
-        
     def _handle_input(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -116,7 +110,30 @@ class brickbreaker:
                     # If that fails, try without parameters
                     game_object.move()
 
+    # In game.py
+    def handle_ball_lost(self):
+        """Handle when a ball falls off the bottom of the screen"""
+        # Reduce lives if score manager exists
+        game_over = False
+        if hasattr(self, 'score_manager'):
+            game_over = self.score_manager.reduce_life()
         
+        if game_over:
+            # Game over - reset the game
+            self.restart_game = True
+        else:
+            # Reset ball to paddle
+            # Find all balls in the game
+            for obj in self.game_objects:
+                if hasattr(obj, 'attached_to_paddle'):
+                    # Reset the ball
+                    obj.attached_to_paddle = True
+                    obj.velocity = Vector2(0, 0)
+                    # Position the ball above the paddle
+                    if hasattr(obj, 'paddle') and obj.paddle:
+                        obj.position.x = obj.paddle.position.x
+                        obj.position.y = obj.paddle.position.y - obj.paddle.radius - obj.radius
+            
     def _draw(self):
         self.screen.fill((0, 0, 0))  # Black background
         
@@ -126,14 +143,16 @@ class brickbreaker:
         
         pygame.display.flip()
     
+    # Replace the _get_game_objects method in brickbreaker class
     def _get_game_objects(self):
         """Returns a list of all game objects that need to be updated each frame"""
-        # Initialize game objects if they don't exist yet
-        if not hasattr(self, 'initialized_objects'):
+        # Make sure game_objects exists
+        if not hasattr(self, 'game_objects') or self.game_objects is None:
+            self.game_objects = []
             self._initialize_game_objects()
         
         # Return only active game objects (filtering out destroyed bricks)
-        return [obj for obj in self.game_objects if not (isinstance(obj, Brick) and obj.destroyed)]
+        return [obj for obj in self.game_objects if not (isinstance(obj, Brick) and hasattr(obj, 'destroyed') and obj.destroyed)]
 
     def _initialize_game_objects(self):
         """Initialize all game objects - separating initialization logic for better OOP"""
@@ -168,9 +187,9 @@ class brickbreaker:
 
     def _create_bricks(self):
         """Create the brick formation using the level manager"""
-        # Use the level manager to create bricks for level 1
         if hasattr(self, 'level_manager'):
-            self.level_manager.load_level(1)
+            # Use custom level designs instead of procedural generation
+            self.level_manager.load_custom_level(1)
         else:
             print("Level manager not initialized")
 

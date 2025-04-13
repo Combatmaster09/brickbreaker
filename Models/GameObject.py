@@ -18,6 +18,7 @@ class gameobject:
         surface.blit(self.sprite, blit_position)
 
     def collides_with(self, other_obj):
+        
         # Check if other_obj is None before trying to access its attributes
         if other_obj is None:
             return False

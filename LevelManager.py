@@ -11,7 +11,6 @@ class LevelManager:
         self.current_level = 1
         self.levels_data = self._generate_levels_data(10)  # Pre-generate 10 levels
 
-    # Add this method to LevelManager class
     def load_custom_level(self, level_number):
         """Load a custom-designed level"""
         if level_number <= len(LEVEL_DESIGNS):
@@ -50,8 +49,8 @@ class LevelManager:
         brick_width, brick_height = globals.BRICK_SIZE
         
         # Add padding between bricks
-        horizontal_padding = 15  # Increased horizontal padding
-        vertical_padding = 15    # Increased vertical padding
+        horizontal_padding = 5
+        vertical_padding = 5
         
         # Calculate total width needed for bricks
         num_cols = max(len(row) for row in level_design)
@@ -72,22 +71,45 @@ class LevelManager:
                 x = start_x + col_idx * (brick_width + horizontal_padding) + brick_width / 2
                 y = start_y + row_idx * (brick_height + vertical_padding) + brick_height / 2
                 
-                # Determine brick health based on character
+                # Determine brick health and powerup based on character
+                powerup_type = None
+                powerup_chance = 0.2  # Default chance
+                
                 if char in '23456789':
                     health = int(char)
                 elif char == '#':
                     health = 1
-                elif char == 'S':
-                    health = 1  # Special brick
-                    # TODO: Implement special brick types
+                elif char == 'E':  # Expand paddle powerup
+                    health = 1
+                    powerup_type = "expand"
+                    powerup_chance = 1.0  # 100% chance
+                elif char == 'S':  # Shrink paddle powerup
+                    health = 1
+                    powerup_type = "shrink"
+                    powerup_chance = 1.0
+                elif char == 'M':  # Multiball powerup
+                    health = 1
+                    powerup_type = "multiball"
+                    powerup_chance = 1.0
+                elif char == 'L':  # Slow ball powerup
+                    health = 1
+                    powerup_type = "slowball"
+                    powerup_chance = 1.0
+                elif char == 'F':  # Fast ball powerup
+                    health = 1
+                    powerup_type = "fastball"
+                    powerup_chance = 1.0
+                elif char == '+':  # Extra life powerup
+                    health = 1
+                    powerup_type = "extralife"
+                    powerup_chance = 1.0
                 else:
                     continue  # Unknown character
                 
-                # Create the brick with precise positioning
-                brick = Brick(Vector2(x, y), load_sprite("brick"), health)
+                # Create the brick with precise positioning and powerup information
+                brick = Brick(Vector2(x, y), load_sprite("brick"), health, powerup_chance, powerup_type)
                 
                 # Adjust the sprite size to match the desired brick size
-                # This ensures the visual representation matches the collision detection
                 if brick.sprite.get_width() != brick_width or brick.sprite.get_height() != brick_height:
                     import pygame
                     brick.sprite = pygame.transform.scale(brick.sprite, (brick_width, brick_height))
@@ -185,16 +207,33 @@ class LevelManager:
                 
         return bricks
         
-    # Update the LevelManager.py file to use the _get_game_objects method:
     def check_level_complete(self):
-        """Check if all bricks are destroyed"""
-        # Use _get_game_objects() instead of directly accessing game_objects
-        game_objects = self.game_instance._get_game_objects()
-        bricks = [obj for obj in game_objects if isinstance(obj, Brick) and not obj.destroyed]
+        """Check if the current level is complete (all bricks destroyed)"""
+        # Get all active bricks from game instance
+        bricks = [obj for obj in self.game_instance.game_objects 
+                if isinstance(obj, Brick) and not obj.destroyed]
         
+        # If no bricks left, level is complete
         if not bricks:
-            # Level complete, load next level
-            self.load_level(self.current_level + 1)
-            return True
+            # Move to next level
+            next_level = self.current_level + 1
+            success = self.load_custom_level(next_level)
+            
+            if success:
+                # Update global level
+                globals.level = next_level
+                self.current_level = next_level
+                
+                # Reset ball position
+                for obj in self.game_instance.game_objects:
+                    if hasattr(obj, 'attached_to_paddle'):
+                        obj.attached_to_paddle = True
+                        obj.velocity = Vector2(0, 0)
+                        # Position ball above paddle
+                        if hasattr(obj, 'paddle') and obj.paddle:
+                            obj.position.x = obj.paddle.position.x
+                            obj.position.y = obj.paddle.position.y - obj.paddle.radius - obj.radius
+                
+                return True
         
         return False

@@ -28,3 +28,8 @@ class velocity_paddle(gameobject):
                 self.position.x = paddle_width / 2
             elif self.position.x > surface.get_width() - paddle_width / 2:
                 self.position.x = surface.get_width() - paddle_width / 2
+                
+    def draw(self, screen):
+        """Draw the paddle on the screen."""
+        if hasattr(self, 'sprite') and self.sprite:
+            screen.blit(self.sprite, (self.position.x - self.radius, self.position.y - self.radius))

@@ -1,11 +1,9 @@
 from .GameObject import gameobject
 from pygame.math import Vector2
 from utils import load_sprite, load_sound
-from Models.AccelerationPaddle import acceleration_paddle
-from Models.VelocityPaddle import velocity_paddle
-from Models.Brick import Brick
 import globals
 import random
+from .Brick import Brick  # Import the Brick classq
 
 class Ball(gameobject):
     VELOCITY = 5  # Constant velocity
@@ -58,15 +56,15 @@ class Ball(gameobject):
                         from game import brickbreaker
                         game_instance = brickbreaker.get_instance()
                         if game_instance and hasattr(game_instance, 'handle_ball_lost'):
-                            # Reset position before calling handler to prevent multiple calls
-                            self.position.y = self.paddle.position.y - self.paddle.radius - self.radius
-                            self.velocity = Vector2(0, 0)
-                            self.attached_to_paddle = True
+                            # Don't reset position here - let the handler do it
                             game_instance.handle_ball_lost()
                     except (ImportError, AttributeError):
                         # Fallback if handler not available
                         self.attached_to_paddle = True
                         self.velocity = Vector2(0, 0)
+                        if self.paddle:
+                            self.position.x = self.paddle.position.x
+                            self.position.y = self.paddle.position.y - self.paddle.radius - self.radius
                 
                 # Check for paddle collision if paddle exists
                 if self.paddle and self.collides_with(self.paddle):
@@ -96,7 +94,7 @@ class Ball(gameobject):
             self.velocity = self.velocity.normalize() * self.VELOCITY
             
             self.attached_to_paddle = False
-
+            
     # In Ball.py, update the handle_paddle_collision method:
     def handle_paddle_collision(self):
         # Make sure the paddle exists
@@ -135,6 +133,9 @@ class Ball(gameobject):
             self.bounce_sound.play()
     
     def check_brick_collisions(self, bricks, previous_position):
+        # Import here to avoid circular imports
+        from Models.Brick import Brick
+        
         collided_bricks = []
         
         for brick in bricks:
@@ -180,6 +181,7 @@ class Ball(gameobject):
                     self.position.y = closest_brick.position.y + brick_height/2 + self.radius + 1
                 else:
                     self.position.y = closest_brick.position.y - brick_height/2 - self.radius - 1
+                    
     def precise_collides_with(self, other_obj):
         """A more precise rectangle-based collision detection"""
         # Get ball bounds

@@ -1,7 +1,9 @@
 import pygame
+import random
 from pygame.math import Vector2
 from pygame.transform import rotozoom
 from .GameObject import gameobject
+from .Powerup import Powerup  # Import the Powerup class
 
 from utils import load_sound, load_sprite
 import globals
@@ -9,14 +11,32 @@ import globals
 UP = Vector2(0, -1)
 
 class Brick(gameobject):
-    def __init__(self, position, sprite, health=1):
+    # In Models/Brick.py
+    def __init__(self, position, sprite, health=1, powerup_chance=0.2, powerup_type=None):
         # Convert grid coordinates to pixel coordinates
         self.position = Vector2(position)
-        self.sprite = sprite
-        self.radius = sprite.get_width() / 2
+        self.powerup_type = powerup_type
+        
+        # Load appropriate sprite based on powerup type
+        if powerup_type:
+            color_map = {
+                "fastball": "red_brick",
+                "slowball": "blue_brick",
+                "expand": "yellow_brick",
+                "shrink": "orange_brick",
+                "multiball": "pink_brick",
+                "extralife": "green_brick"
+            }
+            sprite_name = color_map.get(powerup_type, "brick")
+            self.sprite = load_sprite(sprite_name)
+        else:
+            self.sprite = sprite
+        
+        self.radius = self.sprite.get_width() / 2
         self.velocity = Vector2(0, 0)  # Bricks don't move
         self.health = health
         self.destroyed = False
+        self.powerup_chance = powerup_chance  # Chance to spawn a powerup
 
     def update(self):
         if self.health <= 0:
@@ -33,35 +53,30 @@ class Brick(gameobject):
             except:
                 # If sound fails, just mark as destroyed
                 pass
-    # In Brick.py, update the draw method:
+                
+            # Try to spawn a powerup
+            self._try_spawn_powerup()
+    
+    def _try_spawn_powerup(self):
+        # Spawn a powerup with the defined chance
+        if random.random() < self.powerup_chance:
+            try:
+                from game import brickbreaker
+                game_instance = brickbreaker.get_instance()
+                if game_instance:
+                    powerup = Powerup(self.position, self.powerup_type)
+                    game_instance.game_objects.append(powerup)
+            except (ImportError, AttributeError) as e:
+                print(f"Error spawning powerup: {e}")
+
     def draw(self, surface):
-        # Draw the brick with color based on health
-        if self.health == 1:
-            color = (255, 0, 0)  # Red for 1 health
-        elif self.health == 2:
-            color = (255, 165, 0)  # Orange for 2 health
-        elif self.health == 3:
-            color = (255, 255, 0)  # Yellow for 3 health
-        else:
-            color = (0, 255, 0)  # Green for 4+ health
-        
-        # Create a rect for the brick
-        brick_width = self.sprite.get_width()
-        brick_height = self.sprite.get_height()
-        rect = pygame.Rect(
-            self.position.x - brick_width / 2,
-            self.position.y - brick_height / 2,
-            brick_width,
-            brick_height
-        )
-        
-        # Draw the brick
-        pygame.draw.rect(surface, color, rect)
-        pygame.draw.rect(surface, (255, 255, 255), rect, 1)  # White border
-        
-        # Optionally show health number for higher health bricks
-        if self.health > 1:
-            font = pygame.font.Font(None, 24)
-            text_surf = font.render(str(self.health), True, (255, 255, 255))
-            text_rect = text_surf.get_rect(center=self.position)
-            surface.blit(text_surf, text_rect)
+        if not self.destroyed:
+            blit_position = self.position - Vector2(self.radius)
+            surface.blit(self.sprite, blit_position)
+            
+            # Optionally show health number for higher health bricks
+            if self.health > 1:
+                font = pygame.font.Font(None, 24)
+                text_surf = font.render(str(self.health), True, (255, 255, 255))
+                text_rect = text_surf.get_rect(center=self.position)
+                surface.blit(text_surf, text_rect)

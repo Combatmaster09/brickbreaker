@@ -12,8 +12,6 @@ class ScoreManager:
         self.lives = 3
         self.last_life_lost_time = 0  # Track when the last life was lost
         self.life_loss_cooldown = 1.0  # Cooldown in seconds
-        
-    # ... other methods remain the same ...
     
     def reduce_life(self):
         current_time = time.time()
@@ -63,4 +61,12 @@ class ScoreManager:
         return self.lives <= 0  # Return True if game over
     
     def add_life(self):
+        """Add an extra life to the player"""
         self.lives += 1
+        # Optionally play a sound or show an animation
+        try:
+            # If you have a sound for extra life
+            extra_life_sound = load_sound("extra_life")
+            extra_life_sound.play()
+        except:
+            pass
